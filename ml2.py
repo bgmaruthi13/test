@@ -1,45 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# <table align="left" width=100%>
-#     <tr>
-#         <td width="20%">
-#             <img src="faculty.png">
-#         </td>
-#         <td>
-#             <div align="center">
-#                 <font color="#21618C" size=8px>
-#                   <b> Faculty Notebook <br> (Session 6) </b>
-#                 </font>
-#             </div>
-#         </td>
-#     </tr>
-# </table>
-
-# ## Problem Statement
-# 
-# This dataset is created for the prediction of Graduate admissions from an Indian perspective. The dataset contains various features that are important during the application for the Master's Program. The predicted output obtained from the classification algorithm gives a fair idea about the chances of a student for admission.
-
-# ## About the dataset (Graduate admissions prediction data) 
-# 
-# **Serial No.:** Serial number of student 
-# 
-# **GRE Scores:** GRE score (out of 340)
-# 
-# **TOEFL Scores:** TOEFL score (out of 120)
-# 
-# **University Rating:** University rating (out of 5)
-# 
-# **SOP:** Strength of Statement of Purpose (out of 5)
-# 
-# **LOR:** Strength of Letter of Recommendation (out of 5)
-# 
-# **CGPA:** Undergraduate CGPA (out of 10)
-# 
-# **Research:** Research experience (either 0 or 1)
-# 
-# **Chance of Admit:** Chance of admission (target/dependent variable)
-
 # ## Table of Content
 # 
 # 1. **[Import Libraries](#lib)**
@@ -57,14 +15,6 @@
 #     - 3.3 - **[XGBoost](#xgboost)**
 #         - 3.3.1 - **[Tune the Hyperparameters (GridSearchCV)](#tune)**
 # 4. **[Stack Generalization](#stack)**
-
-# <a id="lib"></a>
-# # 1. Import Libraries
-
-# **Let us import the required libraries.**
-
-# In[1]:
-
 
 # import 'Pandas' 
 import pandas as pd 
