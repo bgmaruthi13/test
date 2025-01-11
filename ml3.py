@@ -441,3 +441,27 @@ print(f"Top 5 Recommended Hotels for User ID {user_id}:")
 for pred in top_5_hotels:
     print(f"HotelID: {pred.iid}, Predicted Rating: {pred.est}")
 
+### 1. **Use of Cophenetic Correlation**
+   Cophenetic correlation measures how well the hierarchical clustering model preserves the pairwise distances between data points. It compares the original distance matrix with the distances computed from the hierarchical tree (dendrogram). A higher cophenetic correlation indicates that the clustering model accurately reflects the true distances. It is used to assess the quality of hierarchical clustering and helps in choosing the right level of granularity for cutting the dendrogram.
+
+### 2. **Methods to Calculate Distance Between Clusters in Hierarchical Clustering**
+   - **Single linkage**: Distance between the closest points in two clusters.
+   - **Complete linkage**: Distance between the farthest points in two clusters.
+   - **Average linkage**: Average of the pairwise distances between all points in the two clusters.
+   - **Centroid linkage**: Distance between the centroids (mean points) of the clusters.
+   - **Ward's linkage**: Minimizes the variance within the clusters by merging clusters with the least increase in total variance.
+
+### 3. **Key Applications of SVD**
+   - **Dimensionality reduction**: SVD is used in techniques like PCA to reduce the number of features while preserving essential information.
+   - **Latent semantic analysis**: In text mining, SVD helps in discovering hidden patterns in data by decomposing large term-document matrices.
+   - **Collaborative filtering**: SVD is applied in recommendation systems (like Netflix or Amazon) to predict user-item interactions based on latent factors.
+   - **Image compression**: SVD is used to compress images by reducing the matrix size while maintaining quality.
+   - **Noise reduction**: SVD helps to remove noise from data by eliminating small singular values.
+
+### 4. **Market Basket Analysis and Uncovering Relationships**
+   Market Basket Analysis is a technique used to identify associations between items purchased together in transactional data. It is often applied in retail to discover purchasing patterns. Key concepts include:
+   - **Frequent itemsets**: Items that appear together in a transaction above a certain frequency threshold.
+   - **Association rules**: Rules like "If A, then B", indicating that when one item is purchased, another item is likely to be bought.
+   - **Support**: Frequency of itemsets appearing in transactions.
+   - **Confidence**: Probability that if an item is bought, the other will also be bought.
+   - **Lift**: Strength of a rule over random chance. Techniques like Apriori or FP-growth are used to mine these associations.
