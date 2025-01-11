@@ -1,15 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[7]:
-
-
-#Section B
-
-
-# In[10]:
-
-
+# Section B
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -42,14 +31,11 @@ X_pca = pca.fit_transform(X_scaled)
 
 # Step 6: Compute explained variance ratio
 explained_variance_ratio = np.cumsum(pca.explained_variance_ratio_)
-
-# Find number of components capturing 90% variance
 n_components_90 = np.argmax(explained_variance_ratio >= 0.90) + 1
 
 # Step 7: Print the top 5 Eigenvalues and Eigenvectors
 eigenvalues = pca.explained_variance_[:5]
 eigenvectors = pca.components_[:5]
-
 print(f"Number of components capturing 90% variance: {n_components_90}")
 print("Top 5 Eigenvalues:", eigenvalues)
 print("Top 5 Eigenvectors:")
@@ -97,14 +83,12 @@ for cluster in range(4):
 
 # Sort clusters by inertia
 cluster_inertia.sort(key=lambda x: x[1])
-
 print("Clusters ordered by WCSS (Inertia):")
 for cluster, inertia in cluster_inertia:
     print(f"Cluster {cluster}: WCSS = {inertia}")
 
 # Step 12: Perform hierarchical clustering and plot dendrogram
 linkage_matrix = linkage(X_reduced[:100], method='ward')  # Use 'ward' linkage and top 100 samples
-
 plt.figure(figsize=(10, 7))
 dendrogram(linkage_matrix)
 plt.title('Dendrogram for Hierarchical Clustering (Top 100 Samples)')
@@ -112,18 +96,7 @@ plt.xlabel('Samples')
 plt.ylabel('Distance')
 plt.show()
 
-# X_reduced and data with cluster labels can be used for further business inferences.
-
-
-# In[ ]:
-
-
 # Section C
-
-
-# In[11]:
-
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -179,36 +152,23 @@ def train_and_evaluate_model(X_reduced, y):
 print("Evaluation without Dimensionality Reduction:")
 accuracy, conf_matrix, class_report = train_and_evaluate_model(X_scaled, y)
 print("Accuracy:", accuracy)
-#print("\nConfusion Matrix:\n", conf_matrix)
-#print("\nClassification Report:\n", class_report)
 
 # Evaluate with PCA
 print("\nEvaluation with PCA:")
 X_pca = apply_dimensionality_reduction(X_scaled, method='PCA')
 accuracy, conf_matrix, class_report = train_and_evaluate_model(X_pca, y)
 print("Accuracy:", accuracy)
-#print("\nConfusion Matrix:\n", conf_matrix)
-#print("\nClassification Report:\n", class_report)
 
 # Evaluate with SVD
 print("\nEvaluation with SVD:")
 X_svd = apply_dimensionality_reduction(X_scaled, method='SVD')
 accuracy, conf_matrix, class_report = train_and_evaluate_model(X_svd, y)
 print("Accuracy:", accuracy)
-#print("\nConfusion Matrix:\n", conf_matrix)
-#print("\nClassification Report:\n", class_report)
-
-
-# In[12]:
-
-
-import pandas as pd
 
 # Step 1: Load the dataset
 data = pd.read_csv('amazon_ratings_Musical_Instruments.csv')
 
 # Step 2: Calculate the popularity of each item
-# Here, we'll calculate the average rating and the number of ratings for each item
 item_popularity = data.groupby('ItemID').agg(
     average_rating=('Rating', 'mean'),
     num_ratings=('Rating', 'count')
@@ -224,16 +184,6 @@ top_5_items = item_popularity.head(5)
 print("Top 5 Recommended Items Based on Popularity:")
 print(top_5_items[['ItemID', 'average_rating', 'num_ratings']])
 
-
-# In[18]:
-
-
-import pandas as pd
-from sklearn.metrics import mean_squared_error
-from surprise import SVD, Dataset, Reader
-from surprise.model_selection import train_test_split
-import numpy as np
-
 # Step 1: Load the dataset
 data = pd.read_csv('Recommendation_mini.csv')
 
@@ -241,6 +191,9 @@ data = pd.read_csv('Recommendation_mini.csv')
 data = data.drop(columns=['Timestamp'])
 
 # Step 3: Prepare data for collaborative filtering using the Surprise library
+from surprise import SVD, Dataset, Reader
+from surprise.model_selection import train_test_split
+import numpy as np
 reader = Reader(rating_scale=(data['Rating'].min(), data['Rating'].max()))
 dataset = Dataset.load_from_df(data[['UserID', 'ItemID', 'Rating']], reader)
 
@@ -277,131 +230,214 @@ for pred in top_5_items:
     print(f"ItemID: {pred.iid}, Predicted Rating: {pred.est}")
 
 
-# In[20]:
+# ##############################################
 
 
-get_ipython().system('wget')
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, pairwise_distances, confusion_matrix
+from yellowbrick.cluster import SilhouetteVisualizer
+import scipy.cluster.hierarchy as sch
+from sklearn.cluster import AgglomerativeClustering
 
+# Load dataset (hypothetical, replace with actual dataset)
+X = pd.read_csv('hypothetical_dataset.csv')
 
-# In[ ]:
+# -----------------------------
+# Exploratory Data Analysis (EDA)
+# -----------------------------
 
+# Check for missing values
+print("Missing Values:\n", X.isnull().sum())
 
+# Summary statistics
+print("\nSummary Statistics:\n", X.describe())
 
+# Visualize data distribution for selected features
+sns.histplot(X['feature_1'], kde=True)
+plt.title("Distribution of Feature 1")
+plt.show()
 
-The **cophenetic correlation coefficient** is a measure used in hierarchical clustering to assess how faithfully a dendrogram represents the pairwise distances between the original data points. It provides an indication of the quality of the hierarchical clustering.
+# ---------------------------
+# Pre-processing (Standardize)
+# ---------------------------
 
-### Key Points:
-1. **Definition**:
-   - The cophenetic distance between two data points is the height of the dendrogram at which the two points are first merged into a single cluster.
-   - The **cophenetic correlation coefficient** compares the cophenetic distances with the original pairwise distances in the data.
+# Handle missing values (fill with median or remove rows)
+X.fillna(X.median(), inplace=True)
 
-3. **Purpose**:
-   - Evaluates how well the hierarchical clustering captures the structure of the data.
-   - A high cophenetic correlation (close to 1) indicates that the clustering results are a good representation of the original pairwise distances.
+# Standardize the data
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 
-4. **Use Cases**:
-   - To **validate the quality** of hierarchical clustering.
-   - To **compare different linkage methods** (e.g., single, complete, average linkage) and choose the one that best preserves the data’s structure.
-   - As a **benchmark** for clustering models when working with hierarchical methods.
+# ----------------------
+# Principal Component Analysis (PCA)
+# ----------------------
 
-5. **Interpretation**:
-   - **\( r_c \approx 1\)**: The dendrogram accurately represents the original distances.
-   - **\( r_c \approx 0\)**: The dendrogram poorly represents the original distances.
-   - A threshold depends on the domain, but typically, a value > 0.75 is considered good.
-```
+# Apply PCA
+pca = PCA()
+X_pca = pca.fit_transform(X_scaled)
 
-### Summary:
-- The cophenetic correlation coefficient is a valuable tool for understanding the quality of hierarchical clustering.
-- It helps to decide whether the dendrogram is a reliable representation of the data structure.
-- It's particularly useful for fine-tuning clustering methods and validating results.
+# Print top 5 Eigenvalues and Eigenvectors
+eigenvalues = pca.explained_variance_
+eigenvectors = pca.components_
 
-Would you like assistance in computing the cophenetic correlation for your dataset or comparing linkage methods?
+print("Top 5 Eigenvalues:", eigenvalues[:5])
+print("Top 5 Eigenvectors:\n", eigenvectors[:5])
 
+# ----------------------
+# K-Means Clustering with Principal Components
+# ----------------------
 
-### Summary: Linkage Methods in Hierarchical Clustering
+# Reduce data to 90% explained variance
+pca_90 = PCA(n_components=0.90)
+X_pca_90 = pca_90.fit_transform(X_scaled)
 
-1. **Single Linkage**: Uses the shortest distance between two clusters. Detects irregular clusters but can lead to elongated ones due to the "chaining effect."
+# Determine optimal number of clusters for KMeans
+silhouette_scores = []
+range_n_clusters = range(2, 11)
 
-2. **Complete Linkage**: Uses the longest distance between two clusters. Produces compact clusters but is sensitive to outliers.
+for n_clusters in range_n_clusters:
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    visualizer = SilhouetteVisualizer(kmeans, X=X_pca_90)
+    visualizer.fit(X_pca_90)
+    silhouette_scores.append(visualizer.silhouette_score_)
 
-3. **Average Linkage (UPGMA)**: Uses the average of all pairwise distances. Balances single and complete linkage and is less sensitive to outliers.
+# Plot silhouette scores for each number of clusters
+plt.plot(range_n_clusters, silhouette_scores)
+plt.xlabel("Number of clusters")
+plt.ylabel("Silhouette Score")
+plt.title("Silhouette Score for K-Means Clustering")
+plt.show()
 
-4. **Weighted Average Linkage (WPGMA)**: Similar to average linkage but treats clusters equally regardless of size.
+# ----------------------
+# Dendrograms and Cophenetic Correlation
+# ----------------------
 
-5. **Centroid Linkage**: Uses the distance between cluster centroids. Sensitive to centroid changes, may cause dendrogram inversions.
+# Linkage methods to compare
+linkage_methods = ['single', 'complete', 'average', 'centroid', 'ward']
 
-6. **Ward’s Method**: Minimizes within-cluster variance by reducing the increase in total squared error. Effective for compact, spherical clusters.
+# Plot dendrograms for each linkage method and calculate cophenetic correlation
+for method in linkage_methods:
+    plt.figure(figsize=(10, 7))
+    Z = sch.linkage(X_pca_90, method=method)
+    sch.dendrogram(Z)
+    plt.title(f'Dendrogram ({method.capitalize()} Linkage)')
+    plt.show()
 
-7. **Median Linkage (WPGMC)**: Based on the median of pairwise distances, similar to centroid linkage but less interpretable.
+    # Calculate cophenetic correlation coefficient
+    cophenetic_corr = sch.cophenet(Z, pairwise_distances(X_pca_90))[0]
+    print(f"Cophenetic Correlation ({method} linkage):", cophenetic_corr)
 
-8. **Custom/Advanced Methods**: Includes flexible linkage for balancing single and complete linkage and maximum likelihood methods using probabilistic models.
+# ----------------------
+# Clustering Without PCA (K-Means and Agglomerative)
+# ----------------------
 
+# K-Means clustering without PCA
+kmeans_no_pca = KMeans(n_clusters=3, random_state=42)
+kmeans_no_pca_labels = kmeans_no_pca.fit_predict(X_scaled)
 
-### **Key Applications of SVD (Brief Overview)**
+# Agglomerative Clustering without PCA
+agglo_no_pca = AgglomerativeClustering(n_clusters=3)
+agglo_no_pca_labels = agglo_no_pca.fit_predict(X_scaled)
 
-1. **Dimensionality Reduction**: Identifies principal components to reduce features in high-dimensional datasets, aiding in preprocessing and visualization.
+# Compare the cluster labels using confusion matrix
+print("\nConfusion Matrix (K-Means vs Agglomerative):")
+print(confusion_matrix(kmeans_no_pca_labels, agglo_no_pca_labels))
 
-2. **Data Compression**: Compresses images, audio, and videos by approximating data with the largest singular values.
+# Visualize the clustering results
+plt.scatter(X_scaled[:, 0], X_scaled[:, 1], c=kmeans_no_pca_labels, cmap='viridis')
+plt.title("K-Means Clustering without PCA")
+plt.show()
 
-3. **Recommender Systems**: Decomposes user-item matrices to discover latent factors for personalized recommendations.
+plt.scatter(X_scaled[:, 0], X_scaled[:, 1], c=agglo_no_pca_labels, cmap='viridis')
+plt.title("Agglomerative Clustering without PCA")
+plt.show()
 
-4. **Noise Reduction**: Filters noise by reconstructing data with top singular values, used in signal and image denoising.
+# Part C - Market Basket Analysis with Apriori and Collaborative Filtering
 
-5. **Latent Semantic Analysis (LSA)**: Extracts semantic relationships from text data for applications like search engines and topic modeling.
+# Import necessary libraries
+import pandas as pd
+from mlxtend.frequent_patterns import apriori, association_rules
+from surprise import SVD, Dataset, Reader
+from surprise.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import numpy as np
 
-6. **Pseudo-Inverse & Linear Systems**: Solves ill-conditioned or singular linear systems using the Moore-Penrose pseudo-inverse.
+# ------------ Market Basket Analysis with Apriori ------------
 
-7. **Facial Recognition**: Identifies eigenfaces for biometric authentication and surveillance.
+# Step 1: Load the dataset
+market_basket_data = pd.read_csv('market_basket.csv')
 
-8. **Quantum Computing**: Models quantum states and operations, aiding in simulation and optimization.
+# Step 2: Pre-processing
+# Convert the data into a transaction format where each row represents a transaction and each column represents an item.
+# For simplicity, we assume each item is a column, and each row is a transaction
 
-9. **Signal & Image Processing**: Decom
-    poses signals and images for analysis or reconstruction, useful in medical imaging and audio processing.
+# Let's assume each transaction has an ID and items are columns with 1 if present and 0 if absent.
+# Example of pre-processing to create the format:
+basket_data = market_basket_data.groupby('TransactionID')['Item'].apply(list).reset_index()
+transactions = basket_data['Item'].apply(lambda x: {item: True for item in x}).tolist()
 
-10. **Control Systems**: Analyzes system stability and rank in robotics and feedback design.
+# Step 3: Apply Apriori algorithm
+from mlxtend.preprocessing import TransactionEncoder
 
----
+# Convert list format to 0,1 matrix for apriori
+te = TransactionEncoder()
+te_ary = te.fit(transactions).transform(transactions)
+df = pd.DataFrame(te_ary, columns=te.columns_)
 
-### **Strengths**:
-- Handles high-dimensional, sparse, and noisy data effectively.
-- Widely applicable in fields like machine learning, engineering, and natural sciences.
+# Step 4: Build the Apriori model with a minimum support of 10%
+frequent_itemsets = apriori(df, min_support=0.1, use_colnames=True)
 
-### **Market Basket Analysis (Brief Overview)**
+# Step 5: Generate association rules
+rules = association_rules(frequent_itemsets, metric='lift', min_threshold=2)
 
-Market Basket Analysis (MBA) identifies relationships between items frequently purchased together in transactional data to uncover patterns and inform business strategies.
+# Step 6: Print values of Lift greater than 2
+print("Association Rules with Lift > 2:")
+print(rules[rules['lift'] > 2][['antecedents', 'consequents', 'lift']])
 
----
+# ------------ Collaborative Filtering using SVD ------------
 
-### **Key Concepts**:
-1. **Transaction**: A record of items purchased together (e.g., `{milk, bread, eggs}`).
-2. **Itemset**: A group of items (e.g., `{milk, bread}` is a 2-itemset).
-3. **Association Rule**: A relationship between items (e.g., "If bread → Then butter").
-4. **Metrics**:
-   - **Support**: Frequency of an itemset in transactions.
-   - **Confidence**: Likelihood of a rule being true.
-   - **Lift**: Strength of an association compared to random chance.
+# Step 1: Load the dataset
+hotel_data = pd.read_csv('hotel_ratings.csv')
 
----
+# Step 2: Pre-process the data
+reader = Reader(rating_scale=(hotel_data['Rating'].min(), hotel_data['Rating'].max()))
+dataset = Dataset.load_from_df(hotel_data[['UserID', 'HotelID', 'Rating']], reader)
 
-### **Techniques**:
-1. **Apriori Algorithm**:
-   - Iteratively finds frequent itemsets using the Apriori property (all subsets of a frequent itemset are frequent).
-2. **FP-Growth Algorithm**:
-   - Efficiently builds a compact FP-Tree to find frequent itemsets without candidate generation.
-3. **Association Rule Mining**:
-   - Generates rules with metrics like confidence and lift.
+# Step 3: Train-test split
+trainset, testset = train_test_split(dataset, test_size=0.2, random_state=42)
 
----
+# Step 4: Train the SVD model
+svd = SVD()
+svd.fit(trainset)
 
-### **Applications**:
-1. **Product Recommendations**: Suggest complementary items (e.g., batteries with electronics).
-2. **Store Layout Optimization**: Place frequently bought-together items nearby.
-3. **Promotions**: Bundle or discount frequently co-purchased products.
-4. **Inventory Management**: Stock popular item combinations efficiently.
-5. **Fraud Detection**: Spot unusual purchase patterns.
-6. **E-commerce Personalization**: Enhance user experience with tailored recommendations.
+# Step 5: Evaluate the model using RMSE
+predictions = svd.test(testset)
+rmse = np.sqrt(mean_squared_error([true_r for (_, _, true_r, _) in predictions], [est for (_, _, _, est) in predictions]))
+print(f'RMSE: {rmse}')
 
----
+# Step 6: Recommend top hotel for a specific user (for example, user_id = 1)
+user_id = 1  # Specify the user ID
+user_ratings = hotel_data[hotel_data['UserID'] == user_id]
 
-**Conclusion**: MBA leverages frequent itemsets and association rules to improve customer experience, optimize operations, and boost revenue.
+# Get list of hotels that the user hasn't rated yet
+rated_hotels = user_ratings['HotelID'].tolist()
+all_hotels = hotel_data['HotelID'].unique()
+unrated_hotels = [hotel for hotel in all_hotels if hotel not in rated_hotels]
+
+# Predict the ratings for unrated hotels
+predictions = [svd.predict(user_id, hotel) for hotel in unrated_hotels]
+
+# Sort predictions by estimated rating and get the top 5 hotels
+top_5_hotels = sorted(predictions, key=lambda x: x.est, reverse=True)[:5]
+
+# Output the top 5 recommended hotels
+print(f"Top 5 Recommended Hotels for User ID {user_id}:")
+for pred in top_5_hotels:
+    print(f"HotelID: {pred.iid}, Predicted Rating: {pred.est}")
 
