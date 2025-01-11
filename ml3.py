@@ -441,6 +441,28 @@ print(f"Top 5 Recommended Hotels for User ID {user_id}:")
 for pred in top_5_hotels:
     print(f"HotelID: {pred.iid}, Predicted Rating: {pred.est}")
 
+# Create a figure for multiple plots
+fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+
+# Plot KMeans clusters
+sns.scatterplot(x=X_reduced[:, 0], y=X_reduced[:, 1], hue=data['Cluster_4'], palette="Set1", s=100, edgecolor='k', alpha=0.7, ax=axes[0])
+axes[0].set_title('KMeans Cluster Visualization (PCA-reduced data)', fontsize=15)
+axes[0].set_xlabel('Principal Component 1', fontsize=12)
+axes[0].set_ylabel('Principal Component 2', fontsize=12)
+axes[0].legend(title='KMeans Clusters', loc='upper right')
+
+# Plot Agglomerative clusters (if applicable)
+sns.scatterplot(x=X_reduced[:, 0], y=X_reduced[:, 1], hue=data['Agglomerative_Cluster'], palette="Set2", s=100, edgecolor='k', alpha=0.7, ax=axes[1])
+axes[1].set_title('Agglomerative Cluster Visualization (PCA-reduced data)', fontsize=15)
+axes[1].set_xlabel('Principal Component 1', fontsize=12)
+axes[1].set_ylabel('Principal Component 2', fontsize=12)
+axes[1].legend(title='Agglomerative Clusters', loc='upper right')
+
+plt.tight_layout()
+plt.show()
+
+
+
 ### 1. **Use of Cophenetic Correlation**
    Cophenetic correlation measures how well the hierarchical clustering model preserves the pairwise distances between data points. It compares the original distance matrix with the distances computed from the hierarchical tree (dendrogram). A higher cophenetic correlation indicates that the clustering model accurately reflects the true distances. It is used to assess the quality of hierarchical clustering and helps in choosing the right level of granularity for cutting the dendrogram.
 
