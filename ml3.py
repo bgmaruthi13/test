@@ -487,3 +487,59 @@ plt.show()
    - **Support**: Frequency of itemsets appearing in transactions.
    - **Confidence**: Probability that if an item is bought, the other will also be bought.
    - **Lift**: Strength of a rule over random chance. Techniques like Apriori or FP-growth are used to mine these associations.
+
+
+# Collaborative Based Recommendation
+
+from surprise import Dataset, Reader
+from surprise.model_selection import train_test_split, cross_validate
+from surprise import KNNWithMeans,SVDpp
+from surprise import accuracy
+
+ratings = pd.read_csv('ratings.csv')
+reader = Reader(rating_scale=(1, 5))
+
+
+ratings.head(3)
+
+rating_data = Dataset.load_from_df(ratings[['userId','movieId','rating']],reader)
+[trainset, testset] = train_test_split(rating_data, test_size=.15,shuffle=True)
+
+
+trainsetfull = rating_data.build_full_trainset()
+print('Number of users: ', trainsetfull.n_users, '\n')
+print('Number of items: ', trainsetfull.n_items, '\n')
+
+# my_k = 15
+# my_min_k = 5
+# my_sim_option = {'name':'pearson', 'user_based':False}
+# algo = KNNWithMeans(k = my_k, min_k = my_min_k, sim_options = my_sim_option, verbose = True)
+# results = cross_validate(
+#     algo = algo, data = rating_data, measures=['RMSE'], 
+#     cv=5, return_train_measures=True
+#     )
+
+
+alg=SVDpp()
+alg.fit(trainsetfull)
+
+#algo.fit(trainsetfull)
+
+alg.predict(uid = 50, iid =2)
+
+item_id=ratings['movieId'].unique()
+item_id10=ratings.loc[ratings['userId']==10,'movieId']
+item_id_pred=np.setdiff1d(item_id,item_id10)
+
+
+item_id_pred
+testset=[[50,iid,4] for iid in item_id_pred]
+pred=alg.test(testset)
+pred
+
+pred_ratings=np.array([pred1.est for pred1 in pred])
+i_max=pred_ratings.argmax()
+iid=item_id_pred[i_max]
+print("Top item for user 10 has iid {0} with predicted rating {1}".format(iid,pred_ratings[i_max]))
+
+
