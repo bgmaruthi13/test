@@ -381,14 +381,135 @@ print("Summary of the Long Tennis Article:")
 print(summary[0]['summary_text'])
 
 
-# In[ ]:
+###########################################################################################################
 
 
+### 1. What are Large Language Models (LLMs)? List any four limitations/drawbacks of LLMs.  
+**Answer**:  
+LLMs are AI models trained on extensive text data to perform various language tasks, including translation, summarization, and answering questions.
+They use deep learning architectures like transformers to process and generate human-like language. Examples include GPT-4, BERT, and LLaMA.  
 
+**Limitations**:  
+1. **Resource Intensive**: Training and deploying LLMs require massive computational resources, leading to high costs and environmental concerns.  
+2. **Bias in Outputs**: They can reproduce and amplify biases present in their training data.  
+3. **Lack of Contextual Understanding**: They may generate plausible but incorrect or nonsensical answers due to a lack of true understanding.  
+4. **Inability to Perform Complex Reasoning**: LLMs struggle with tasks requiring deep logical reasoning or multi-step problem-solving.  
 
+---
 
-# In[ ]:
+### 2. Discuss RNN cell and its drawback. How does LSTM overcome RNN drawbacks?  
+**Answer**:  
+RNN (Recurrent Neural Network) cells process sequential data by maintaining a hidden state across time steps. 
+They work well for tasks like language modeling and time series prediction. 
+However, RNNs suffer from the **vanishing gradient problem**, where gradients diminish during backpropagation, making it difficult to learn long-term dependencies. 
+This issue limits their effectiveness on lengthy sequences.  
 
+**LSTM** (Long Short-Term Memory) networks overcome this drawback by introducing gated mechanisms:  
+1. **Forget Gate**: Controls which information to remove from the memory.  
+2. **Input Gate**: Determines what new information to add.  
+3. **Output Gate**: Regulates the output based on the updated memory.  
+These gates enable LSTMs to retain important information over long sequences, improving their performance on tasks like speech recognition and machine translation.  
 
+---
 
+### 3. Explain Named Entity Recognition (NER) with an example.  
+**Answer**:  
+NER identifies and classifies named entities (e.g., names of people, places, organizations, dates) within text into predefined categories. 
+It is a crucial task in Natural Language Processing (NLP) for extracting structured information from unstructured text.  
+
+**Example**:  
+Input: *“Amazon was founded by Jeff Bezos in 1994.”*  
+NER Output:  
+- **Amazon**: Organization  
+- **Jeff Bezos**: Person  
+- **1994**: Date  
+
+Applications include question-answering systems, chatbots, and content summarization. NER helps streamline information retrieval by extracting key details from large datasets.  
+
+---
+
+### 4. What is Generative AI? Difference between discriminative and generative AI.  
+**Answer**:  
+Generative AI refers to models that create new data similar to their training data. These models generate text, images, videos, or music, with examples like GPT, DALL-E, and Stable Diffusion.  
+
+**Difference**:  
+- **Discriminative AI**: Learns decision boundaries between classes and is used for classification tasks (e.g., Logistic Regression, SVMs).  
+- **Generative AI**: Models the underlying data distribution to generate samples and is used for tasks like text generation, image creation, and synthetic data generation (e.g., GANs, Variational Autoencoders).  
+
+---
+
+### 5. Explain the drawbacks of LSTM.  
+**Answer**:  
+LSTM (Long Short-Term Memory) networks are widely used for sequential data, but they have limitations:  
+1. **High Computational Cost**: Their complex gating mechanisms increase training and inference times.  
+2. **Memory Constraints**: Handling very long sequences can still overwhelm the memory cells.  
+3. **Overfitting**: LSTMs require careful tuning of hyperparameters to avoid overfitting, especially on small datasets.  
+4. **Parallelization Limitations**: Unlike transformers, LSTMs process sequences step-by-step, making them slower for large-scale tasks.  
+
+---
+
+### 6. Draw the transformer architecture and explain the attention mechanism.  
+**Answer**:  
+Transformers use self-attention mechanisms to process sequences in parallel, unlike RNNs and LSTMs.  
+1. **Attention Mechanism**:  
+   - Each input word is represented as a query (Q), key (K), and value (V).  
+   - Attention score = Softmax(QKᵀ / √d) * V.  
+   - This enables the model to focus on relevant parts of the sequence.  
+
+2. **Architecture**:  
+   - Consists of an encoder-decoder stack.  
+   - The encoder processes input data, and the decoder generates output based on attention weights and encoded representations.  
+
+**Example**: In the sentence “She threw the ball,” the attention mechanism links "threw" strongly to "ball," understanding their relationship.  
+
+---
+
+### 7. What is zero-shot learning?  
+**Answer**:  
+Zero-shot learning allows AI models to perform tasks they haven't been explicitly trained on by leveraging generalized knowledge from pretraining.
+It uses natural language descriptions or semantic representations to connect unseen tasks to existing knowledge.  
+
+**Example**: A zero-shot model trained on text classification can infer sentiment for a dataset of tweets, even without being directly trained on social media data. 
+This enables efficient task generalization.  
+
+---
+
+### 8. What is Generative AI? List two concerns and approaches to mitigate them.  
+**Answer**:  
+Generative AI creates realistic content, such as text, images, and audio, based on learned patterns from training data.  
+
+**Concerns**:  
+1. **Misinformation**: Can produce fake or misleading content, contributing to misinformation campaigns.  
+2. **Bias Amplification**: May perpetuate societal biases present in training data.  
+
+**Mitigation Approaches**:  
+1. **Robust Training**: Use diverse and high-quality datasets with fairness-aware techniques.  
+2. **Content Verification**: Implement watermarks, cryptographic signatures, or AI-generated content detectors to verify authenticity.  
+
+---
+
+### 9. What is attention in Transformer architecture? Example to compute attention scores.  
+**Answer**:  
+Attention in transformers helps the model focus on relevant words in a sequence, improving context understanding.  
+
+**Example Calculation**:  
+Sentence: “I love AI.”  
+1. Compute Query (Q), Key (K), and Value (V) matrices for each word.  
+2. Compute Attention scores = Softmax(QKᵀ / √d).  
+3. Multiply scores with Value (V) for the weighted output.  
+
+The word “love” will have a strong focus on “AI,” ensuring the model understands the sentiment and context effectively.  
+
+---
+
+### 10. What is Prompt Engineering? List two prompting approaches.  
+**Answer**:  
+Prompt Engineering involves designing input prompts to guide AI models toward desired outcomes. 
+It plays a crucial role in maximizing the effectiveness of LLMs in various tasks.  
+
+**Approaches**:  
+1. **Few-shot Prompting**: Include a few examples of the desired task within the prompt to help the model generalize.  
+2. **Chain-of-Thought Prompting**: Encourage the model to generate step-by-step reasoning for complex tasks.  
+
+Effective prompting significantly improves the accuracy and relevance of AI-generated outputs.
 
