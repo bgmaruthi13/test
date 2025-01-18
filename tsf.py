@@ -282,4 +282,188 @@ For example, in AR(1), PACF has a single spike at lag 1, while ACF decays geomet
 Choose based on seasonality behavior; for example, apply a multiplicative model for exponential sales growth during peak seasons.  
 
                                                                                
+#!/usr/bin/env python
+# coding: utf-8
+
+# Import the necessary libraries.
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from IPython.display import display
+from pylab import rcParams
+from datetime import datetime, timedelta
+from statsmodels.tsa.stattools import adfuller, pacf, acf
+from statsmodels.graphics.tsaplots import plot_pacf, plot_acf
+from statsmodels.graphics.gofplots import qqplot
+from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+import warnings
+warnings.filterwarnings('ignore')
+
+# Configure matplotlib inline
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+# Read the data set in a Time Series with proper Time frequency or period.
+df = pd.read_csv('MaunaLoa.csv', parse_dates=['Year-Month'], index_col='Year-Month')
+df.head(15)
+
+# Plot the Time Series Data.
+rcParams['figure.figsize'] = 15, 8
+df.plot()
+plt.grid()
+
+# Plot a boxplot to understand the variation of Carbon Dioxide in parts per million with respect to months across years.
+sns.boxplot(x=df.index.month, y=df['CO2 ppm'])
+plt.grid()
+
+# Plot a graph of monthly Carbon Dioxide in parts per million across years.
+monthly_co2ppm_across_years = pd.pivot_table(df, values='CO2 ppm', columns=df.index.year, index=df.index.month_name())
+monthly_co2ppm_across_years.plot()
+plt.grid()
+plt.legend(loc='best')
+
+# Decompose the Time Series to understand the various components.
+decomposition = seasonal_decompose(df, model='additive')
+decomposition.plot()
+
+# Stationarity test
+sns.boxplot(x=df.index.year, y=df['CO2 ppm'])
+plt.grid()
+observations = df.values
+test_result = adfuller(observations)
+test_result
+
+# Applying differencing
+df_diff = df.diff(periods=1).dropna()
+observations = df_diff.values
+test_result = adfuller(observations)
+test_result
+
+# Check the ACF and PACF of the training data.
+plot_acf(df, lags=30)
+plot_pacf(df)
+plot_acf(df_diff)
+plot_pacf(df_diff)
+
+# Train-Test split
+train_end = datetime(1978, 12, 1)
+test_end = datetime(1980, 12, 1)
+train = df[:train_end]
+test = df[train_end + timedelta(days=1):test_end]
+
+# Selecting an order of ARIMA model for data with the lowest Akaike Information Criteria (AIC).
+p = q = range(0, 4)
+d = range(1, 2)
+pdq = list(itertools.product(p, d, q))
+print('Parameter combinations for the Model:')
+for i in range(1, len(pdq)):
+    print(f'Model: {pdq[i]}')
+
+dfObj1 = pd.DataFrame(columns=['param', 'AIC'])
+
+for param in pdq:
+    try:
+        mod = ARIMA(train, order=param)
+        results_Arima = mod.fit()
+        print(f'ARIMA{param} - AIC:{results_Arima.aic}')
+        dfObj1 = dfObj1.append({'param': param, 'AIC': results_Arima.aic}, ignore_index=True)
+    except:
+        continue
+
+dfObj1.sort_values(by=['AIC'])
+
+# Fit the ARIMA model
+model = ARIMA(train, order=(2, 1, 3))
+results_Arima = model.fit()
+print(results_Arima.summary())
+
+# Predict on the Test Set using this model and evaluate the model on the test set using RMSE and MAPE
+pred_start = test.index[0]
+pred_end = test.index[-1]
+ARIMA_predictions = results_Arima.predict(start=pred_start, end=pred_end)
+ARIMA_pred = ARIMA_predictions.cumsum()
+
+plt.plot(train, label='Training Data')
+plt.plot(test, label='Test Data')
+plt.plot(test.index, ARIMA_predictions, label='Predicted Data - ARIMA')
+plt.legend(loc='best')
+plt.grid()
+
+ARIMA_predictions_df = pd.DataFrame(ARIMA_predictions)
+residuals = test['CO2 ppm'] - ARIMA_predictions_df['predicted_mean']
+qqplot(residuals, line="s")
+
+from sklearn.metrics import mean_squared_error
+rmse = mean_squared_error(test['CO2 ppm'], ARIMA_predictions_df['predicted_mean'], squared=False)
+print(rmse)
+
+def MAPE(y_true, y_pred):
+    return np.mean((np.abs(y_true - y_pred)) / y_true) * 100
+
+mape = MAPE(test['CO2 ppm'].values, ARIMA_predictions_df['predicted_mean'].values)
+print(mape)
+
+# SARIMA Model
+p = q = range(0, 3)
+d = range(1, 2)
+pdq = list(itertools.product(p, d, q))
+model_pdq = [(x[0], x[1], x[2], 12) for x in list(itertools.product(p, d, q))]
+print('Examples of parameter combinations for Model...')
+print(f'Model: {pdq[1]}{model_pdq[1]}')
+print(f'Model: {pdq[1]}{model_pdq[2]}')
+print(f'Model: {pdq[2]}{model_pdq[3]}')
+print(f'Model: {pdq[2]}{model_pdq[4]}')
+
+dfObj2 = pd.DataFrame(columns=['param', 'seasonal', 'AIC'])
+
+for param in pdq:
+    for param_seasonal in model_pdq:
+        mod = SARIMAX(train, order=param, seasonal_order=param_seasonal, enforce_stationarity=False, enforce_invertibility=False)
+        results_SARIMA = mod.fit()
+        print(f'SARIMA{param}x{param_seasonal}12 - AIC:{results_SARIMA.aic}')
+        dfObj2 = dfObj2.append({'param': param, 'seasonal': param_seasonal, 'AIC': results_SARIMA.aic}, ignore_index=True)
+
+dfObj2.sort_values(by=['AIC'])
+
+model = SARIMAX(train, order=(1, 1, 0), seasonal_order=(1, 1, 2, 12))
+model_Sarima = model.fit()
+print(model_Sarima.summary())
+
+SARIMA_predictions = model_Sarima.predict(start=pred_start, end=pred_end)
+
+plt.plot(train, label='Training Data')
+plt.plot(test, label='Test Data')
+plt.plot(test.index, SARIMA_predictions, label='Predicted Data - SARIMA')
+plt.legend(loc='best')
+plt.grid()
+
+rmse = mean_squared_error(test['CO2 ppm'], SARIMA_predictions, squared=False)
+print(rmse)
+
+mape = MAPE(test['CO2 ppm'], SARIMA_predictions)
+print(mape)
+
+model_Sarima.plot_diagnostics(figsize=(16, 8))
+plt.show()
+
+# Fitting model on whole data
+model = SARIMAX(df, order=(1, 1, 0), seasonal_order=(1, 1, 2, 12), enforce_stationarity=False, enforce_invertibility=False)
+model_Sarima = model.fit()
+print(model_Sarima.summary())
+
+# Forecast with confidence interval
+forecast = model_Sarima.forecast(steps=24)
+pred95 = model_Sarima.get_forecast(steps=24).conf_int()
+
+axis = df.plot(label='Observed', figsize=(15, 8))
+forecast.plot(ax=axis, label='Forecast', alpha=0.7)
+axis.fill_between(forecast.index, pred95['lower CO2 ppm'], pred95['upper CO2 ppm'], color='k', alpha=.15)
+axis.set_xlabel('Year-Months')
+axis.set_ylabel('CO2 ppm')
+plt.legend(loc='best')
+plt.show()
+
+# END
 
