@@ -1,3 +1,102 @@
+# Model 
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+
+# Define dataset path
+dataset_path = "3_food_classes"
+
+# Image parameters
+img_height, img_width = 128, 128  # Larger image size for better feature extraction
+batch_size = 32
+
+# Data Augmentation
+datagen = ImageDataGenerator(
+    rescale=1.0/255.0,
+    rotation_range=20,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    validation_split=0.2
+)
+
+train_generator = datagen.flow_from_directory(
+    dataset_path,
+    target_size=(img_height, img_width),
+    batch_size=batch_size,
+    class_mode='categorical',
+    subset='training'
+)
+
+val_generator = datagen.flow_from_directory(
+    dataset_path,
+    target_size=(img_height, img_width),
+    batch_size=batch_size,
+    class_mode='categorical',
+    subset='validation'
+)
+
+# Build Improved Model
+model = Sequential()
+
+# Add layers
+model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(img_height, img_width, 3)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(128, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(256, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Flatten())
+model.add(Dense(256, activation='relu'))
+model.add(Dropout(0.5))  # Dropout to prevent overfitting
+model.add(Dense(128, activation='relu'))
+model.add(Dense(3, activation='softmax'))  # Output layer for 3 classes
+
+# Model Summary
+model.summary()
+
+# Compile the Model
+optimizer = Adam(learning_rate=0.0001)
+model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Callbacks
+checkpoint = ModelCheckpoint(
+    'best_model_weights.h5',  # Save the weights of the best model
+    monitor='val_accuracy',
+    save_best_only=True,
+    mode='max',
+    verbose=1
+)
+
+early_stopping = EarlyStopping(
+    monitor='val_accuracy',
+    patience=10,  # Stop training if no improvement for 10 epochs
+    verbose=1,
+    restore_best_weights=True
+)
+
+# Train the Model
+history = model.fit(
+    train_generator,
+    epochs=50,
+    validation_data=val_generator,
+    callbacks=[checkpoint, early_stopping]
+)
+
+
+
 # Semantic Segmentation Model
 
 import os
