@@ -1,5 +1,4 @@
-# Model 
-
+# Base Model 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
@@ -95,6 +94,65 @@ history = model.fit(
     callbacks=[checkpoint, early_stopping]
 )
 
+# Transfer Learning Technique
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPool2D, Flatten, Dense, GlobalAveragePooling2D
+gpu_devices = tf.config.list_physical_devices('GPU')
+if not gpu_devices:
+    print("TensorFlow is using the CPU.")
+else:
+    print(f"TensorFlow is using the following GPU(s): {gpu_devices}")
+
+train_dir="3_food_classes/train/"
+test_dir="3_food_classes/test/"
+
+# Load the pretrained base model (this model contains only the convolution layers)
+base_model=tf.keras.models.load_model("base_model") # "base_model" is the folder given to you with the model files
+
+# Freeze the convolutional layers
+base_model.trainable = False
+
+# Add custom layers
+transfer_model = Sequential([
+    base_model,
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dense(64, activation='relu'),
+    Dense(3, activation='softmax')  # Assuming 3 classes
+])
+
+# Compile the model
+transfer_model.compile(optimizer='adam',
+                       loss='categorical_crossentropy',
+                       metrics=['accuracy'])
+
+datagram = ImageDataGenerator(rescale=1./255)
+
+# Input shape changes to 224, 224, 3 as per the base model summary
+train_data = datagram.flow_from_directory(
+    train_dir,
+    target_size=(224, 224),
+    batch_size=20,
+    # Because these are not binary classification
+    class_mode='categorical'
+)
+
+test_data = datagram.flow_from_directory(
+    test_dir,
+    target_size=(224, 224),
+    batch_size=20,
+    # Also align the final output layer as per this
+    class_mode='categorical'
+)
+
+# Train the model with the dataset
+transfer_model.fit(train_data, validation_data=test_data, epochs=10)
+
+# Save the transfer learning model
+transfer_model.save("transfer_learning_model.h5")
+# Best accuracy we got was 33% - with transfer learing we have 90%!
 
 
 # Semantic Segmentation Model
