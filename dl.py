@@ -98,43 +98,68 @@ history = model.fit(
 
 
 # Semantic Segmentation Model
-
 import os
-import numpy as np
+import cv2
+from PIL import Image
 import tensorflow as tf
-from segmentation_models import Unet
-from segmentation_models.losses import bce_jaccard_loss
-from segmentation_models.metrics import iou_score
+import numpy as np
+from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
+
+image_dir='Unet_Dataset/images/'
+mask_dir='Unet_Dataset/MASKS_BW/'
+
+# Function to load all images into a numpy array
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
+def load_images_from_folder(folder, target_size):
+    images = []
+    for filename in sorted(os.listdir(folder)):  # Sorting ensures correct pairing
+        img_path = os.path.join(folder, filename)
+        img = load_img(img_path, target_size=target_size)
+        img_array = img_to_array(img)
+        images.append(img_array)
+    return np.array(images)
 
-# Constants
-IMG_SIZE = (128, 128)
-DATASET_PATH = "Unet_Dataset"
+# Parameters
+IMG_HEIGHT = 128
+IMG_WIDTH = 128
+IMG_CHANNELS = 3
+TOTAL_IMAGES = 150
 
-# Load and preprocess data
-def load_data(path):
-    images = [img_to_array(load_img(f"{path}/images/{file}", target_size=IMG_SIZE)) / 255.0 for file in os.listdir(f"{path}/images")]
-    masks = [img_to_array(load_img(f"{path}/masks/{file}", target_size=IMG_SIZE, color_mode="grayscale")) / 255.0 for file in os.listdir(f"{path}/masks")]
-    return np.array(images), np.expand_dims(np.array(masks), -1)
+# Step 1: Load all the images
+images = load_images_from_folder(image_dir, target_size=(IMG_HEIGHT, IMG_WIDTH))
+masks = load_images_from_folder(mask_dir, target_size=(IMG_HEIGHT, IMG_WIDTH))
+masks = np.expand_dims(masks[..., 0], axis=-1)  # Keep masks binary (128x128x1)
 
-images, masks = load_data(DATASET_PATH)
+len(images), len(masks)
+
+from sklearn.model_selection import train_test_split
+
+# 2. Scale images and masks
+images = images / 255.0  # Scale images to range [0, 1]
+masks = masks / 255.0    # Scale masks to range [0, 1]
+
+# 3. Split the data into train and test
 X_train, X_test, y_train, y_test = train_test_split(images, masks, test_size=0.2, random_state=42)
+X_train.shape, X_test.shape
 
-# Define and compile U-Net model
-model = Unet('resnet34', input_shape=(*IMG_SIZE, 3), classes=1, activation='sigmoid', encoder_weights='imagenet')
-model.compile(optimizer='adam', loss=bce_jaccard_loss, metrics=[iou_score])
+# pip install if this doesn't work
+# Required for newer versions of TensorFlow
+os.environ["SM_FRAMEWORK"] = "tf.keras"
+import segmentation_models as sm
 
-# Train the model
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=5, batch_size=8)
+# 4. Define the pre-trained segmentation model (U-Net)
+BACKBONE = 'resnet34'  # Using ResNet34 backbone
+preprocess_input = sm.get_preprocessing(BACKBONE)
 
-# Evaluate and visualize results
-loss, iou = model.evaluate(X_test, y_test)
-print(f"Test Loss: {loss}, Test IoU: {iou}")
+# Preprocess data
+X_train = preprocess_input(X_train)
+X_test = preprocess_input(X_test)
 
-for i in range(3):  # Display 3 predictions
-    plt.subplot(1, 3, 1); plt.imshow(X_test[i]); plt.title("Image")
-    plt.subplot(1, 3, 2); plt.imshow(y_test[i].squeeze(), cmap='gray'); plt.title("Ground Truth")
-    plt.subplot(1, 3, 3); plt.imshow(model.predict(X_test[i:i+1]).squeeze(), cmap='gray'); plt.title("Prediction")
-    plt.show()
+# Define model
+model = sm.Unet(BACKBONE, encoder_weights='imagenet', input_shape=(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS), classes=1, activation='sigmoid')
+
+# 5. Compile the model
+model.compile(optimizer='adam',
+              loss=sm.losses.bce_jaccard_loss,  # Binary crossentropy + Jaccard loss
+              metrics=[sm.metrics.iou_score])  # Intersection over Union (IoU)
