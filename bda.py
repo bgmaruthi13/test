@@ -46,6 +46,50 @@ It helps Hive efficiently manage and query large datasets by keeping track of al
 
 ---
 
+**Partitioning in Hive** is a method to divide a large table into smaller parts based on the values of one or more columns (called partition columns). This helps Hive to scan only relevant data, improving query performance.
+
+
+### **Example:**
+
+Suppose you have a `sales` table with columns:
+`id`, `amount`, `country`, `year`.
+
+Create a partitioned table:
+
+```sql
+CREATE TABLE sales (
+  id INT,
+  amount FLOAT
+)
+PARTITIONED BY (country STRING, year STRING);
+```
+
+Load data:
+
+```sql
+LOAD DATA INPATH '/data/sales_2023_us.csv'
+INTO TABLE sales
+PARTITION (country='US', year='2023');
+```
+
+Query:
+
+```sql
+SELECT * FROM sales WHERE country='US' AND year='2023';
+```
+
+Hive will only scan the folder `country=US/year=2023`, saving time.
+
+
+**Benefits:**
+
+* Faster queries
+* Less data scanned
+* Organized storage in HDFS
+
+
+---
+
 ### Can HBase (NoSQL) be configured as Hive Metastore? (1 mark)
 
 No, **HBase cannot be used as the Hive Metastore**.
@@ -80,7 +124,16 @@ It states that a distributed system can only guarantee two out of the three prop
 **MongoDB in CAP Theorem:**
 MongoDB is **AP (Availability and Partition tolerance)** by default but can be tuned to favor **Consistency** depending on configuration (like write concern and read preference). Usually, it prioritizes availability and partition tolerance over strict consistency.
 
+----
+**Q: List any 2 differences between Coalesce and Repartition in Spark.**
 
+**Answer:**
+
+| **Coalesce**                                                         | **Repartition**                                                              |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 1. Reduces the number of partitions by merging without full shuffle. | 1. Can increase or decrease partitions with a full data shuffle.             |
+| 2. More efficient for reducing partitions.                           | 2. More flexible and balanced for both increasing and decreasing partitions. |
+----
 
 Here’s a detailed explanation with simple logical diagrams for each topic you asked about: Hive architecture, Spark architecture, Kafka, and NoSQL types.
 
@@ -592,3 +645,6 @@ avg_price_2bhk_hsr_sql = spark.sql("""
 """)
 avg_price_2bhk_hsr_sql.show()
 ```
+
+
+
