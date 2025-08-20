@@ -1,0 +1,46 @@
+import pandas as pd
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import FAISS
+from langchain.embeddings import HuggingFaceEmbeddings
+
+# Load CSV
+df = pd.read_csv("etl_logs.csv", sep=";")
+
+# Turn each row into text (context for the LLM)
+docs = []
+for _, row in df.iterrows():
+    text = f"""
+    EventSet ID: {row['eventset_id']}
+    Cousin ID: {row['cousin id']}
+    Status: {row['status']}
+    BU Code: {row['bu_code']}
+    Batch Number: {row['batchnumber']}
+    File: {row['batchfilename']}
+    Event Type: {row['eventtype']}
+    Receipt Time: {row['receipttime']}
+    Processed Time: {row['processedtime']}
+    Duration: {row['duration']}
+    Interpreter: {row['interpreter']}
+    Job Type: {row['jobtype']}
+    """
+    docs.append(text)
+
+# Split into chunks
+splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+doc_chunks = splitter.split_documents([{"page_content": d} for d in docs])
+
+# Create embeddings
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+vectorstore = FAISS.from_documents(doc_chunks, embeddings)
+
+vectorstore.save_local("etl_index")
+
+template = """
+You are an ETL Log Assistant. Use the given ETL job records to answer user queries.
+Be specific and include job IDs, filenames, and statuses where available.
+
+Context: {context}
+Question: {question}
+Answer:
+"""
+
