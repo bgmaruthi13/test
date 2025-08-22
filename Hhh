@@ -44,3 +44,26 @@ Question: {question}
 Answer:
 """
 
+
+
+
+
+response = mistral_llm.generate(
+    prompts=[f"""
+You are an assistant that summarizes emails.
+
+Task:
+- Group the following emails by **Sender**.
+- For each sender, create a concise summary of all their emails.
+- Capture only the important action items, decisions, or key information.
+
+Emails:
+{email_text}
+
+Format the output like this:
+Sender: <sender email or name>
+Summary: <summary of their emails in 2–3 bullet points>
+    """]
+)
+
+
