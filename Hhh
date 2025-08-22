@@ -67,3 +67,27 @@ Summary: <summary of their emails in 2–3 bullet points>
 )
 
 
+
+response = mistral_llm.generate(
+    prompts=[f"""
+You are an assistant that summarizes emails.
+
+Task:
+- Group the following emails by **Sender**.
+- For each sender, provide a detailed summary that captures **all important information** (deadlines, action items, requests, approvals, updates, and reminders).
+- Do not omit important context or details.
+- Keep it structured and easy to scan.
+
+Emails:
+{email_text}
+
+Format the output like this:
+
+Sender: <sender email or name>
+Summary:
+- Point 1
+- Point 2
+- Point 3
+    """]
+)
+
