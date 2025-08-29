@@ -1,5 +1,32 @@
 win32c
 
+    # Global digest with a prompt
+    if all_summaries:
+        print(f"\n📌 General Takeaways from Last {limit} Emails:")
+
+        combined = "\n".join(
+            [f"- {s}" for s in all_summaries]
+        )
+
+        # 👇 Prompt explicitly tells the model what to do
+        prompt = (
+            "You are an assistant that creates daily email digests.\n\n"
+            "Here are summaries of several emails:\n"
+            f"{combined}\n\n"
+            "Please write a concise daily digest highlighting the main action items, "
+            "decisions, and overall trends from these emails."
+        )
+
+        try:
+            general_summary = summarizer(
+                prompt,
+                max_length=200,
+                min_length=60,
+                do_sample=False
+            )
+            print(f"📣 {general_summary[0]['summary_text']}")
+        except Exception as e:
+            print(f"[Error summarizing overall insights: {str(e)}]")
 
 
 
