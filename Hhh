@@ -1,212 +1,58 @@
-win32c
-
-    # Global digest with a prompt
-    if all_summaries:
-        print(f"\n📌 General Takeaways from Last {limit} Emails:")
-
-        combined = "\n".join(
-            [f"- {s}" for s in all_summaries]
-        )
-
-        # 👇 Prompt explicitly tells the model what to do
-        prompt = (
-            "You are an assistant that creates daily email digests.\n\n"
-            "Here are summaries of several emails:\n"
-            f"{combined}\n\n"
-            "Please write a concise daily digest highlighting the main action items, "
-            "decisions, and overall trends from these emails."
-        )
-
-        try:
-            general_summary = summarizer(
-                prompt,
-                max_length=200,
-                min_length=60,
-                do_sample=False
-            )
-            print(f"📣 {general_summary[0]['summary_text']}")
-        except Exception as e:
-            print(f"[Error summarizing overall insights: {str(e)}]")
+from dataclasses import dataclass
+from typing import Dict, Optional, List
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
 
+@dataclass
+class Chunk:
+    """Text chunk with metadata and embedding."""
+    id: str
+    text: str
+    vector: Optional[np.ndarray]
+    metadata: Dict
 
-import pandas as pd
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings
 
-# Load CSV
-df = pd.read_csv("etl_logs.csv", sep=";")
-
-# Turn each row into text (context for the LLM)
-docs = []
-for _, row in df.iterrows():
-    text = f"""
-    EventSet ID: {row['eventset_id']}
-    Cousin ID: {row['cousin id']}
-    Status: {row['status']}
-    BU Code: {row['bu_code']}
-    Batch Number: {row['batchnumber']}
-    File: {row['batchfilename']}
-    Event Type: {row['eventtype']}
-    Receipt Time: {row['receipttime']}
-    Processed Time: {row['processedtime']}
-    Duration: {row['duration']}
-    Interpreter: {row['interpreter']}
-    Job Type: {row['jobtype']}
+class LocalEmbedder:
     """
-    docs.append(text)
+    Offline embedding generator using local nomic-embed-text-v1.5 model.
+    Model path: models/nomic-embed-text-v1.5
+    """
 
-# Split into chunks
-splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-doc_chunks = splitter.split_documents([{"page_content": d} for d in docs])
+    def __init__(self, model_path: str = "models/nomic-embed-text-v1.5"):
+        self.model_path = model_path
+        print(f"Loading local embedding model from: {self.model_path}")
 
-# Create embeddings
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-vectorstore = FAISS.from_documents(doc_chunks, embeddings)
-
-vectorstore.save_local("etl_index")
-
-template = """
-You are an ETL Log Assistant. Use the given ETL job records to answer user queries.
-Be specific and include job IDs, filenames, and statuses where available.
-
-Context: {context}
-Question: {question}
-Answer:
-"""
-
-
-
-
-
-response = mistral_llm.generate(
-    prompts=[f"""
-You are an assistant that summarizes emails.
-
-Task:
-- Group the following emails by **Sender**.
-- For each sender, create a concise summary of all their emails.
-- Capture only the important action items, decisions, or key information.
-
-Emails:
-{email_text}
-
-Format the output like this:
-Sender: <sender email or name>
-Summary: <summary of their emails in 2–3 bullet points>
-    """]
-)
-
-
-
-response = mistral_llm.generate(
-    prompts=[f"""
-You are an assistant that summarizes emails.
-
-Task:
-- Group the following emails by **Sender**.
-- For each sender, provide a detailed summary that captures **all important information** (deadlines, action items, requests, approvals, updates, and reminders).
-- Do not omit important context or details.
-- Keep it structured and easy to scan.
-
-Emails:
-{email_text}
-
-Format the output like this:
-
-Sender: <sender email or name>
-Summary:
-- Point 1
-- Point 2
-- Point 3
-    """]
-)
-
-
-
-
-
-
-
-
-# Connect to Outlook using COM (only on Windows)
-import win32com.client
-from transformers import pipeline
-
-# Function to fetch the N most recent emails
-def get_recent_emails(limit=5):
-    outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-    inbox = outlook.GetDefaultFolder(6)  # 6 = Inbox
-
-    messages = inbox.Items
-    messages.Sort("[ReceivedTime]", True)  # Sort by newest first
-
-    filtered_emails = []
-    count = 0
-    for message in messages:
-        if message.Class != 43:  # 43 = MailItem type
-            continue
         try:
-            subject = message.Subject
-            body = message.Body
-        except Exception:
-            continue  # Skip malformed or protected emails
-
-        filtered_emails.append((subject, body))
-        count += 1
-        if count >= limit:
-            break
-
-    return filtered_emails
-
-# Function to summarize each email body
-def summarize_email(body):
-    body = ' '.join(body.split())[:2000]  # clean whitespace, truncate
-    try:
-        summary = summarizer(body, max_length=120, min_length=30, do_sample=False)
-        return summary[0]['summary_text']
-    except Exception as e:
-        return f"[Error summarizing: {str(e)}]"
-
-# Main program
-if __name__ == "__main__":
-    limit = 5  # Change to fetch more or fewer emails
-
-    local_model_path = r"C:\models\flan-t5-small"  # 👈 your local path
-
-    print("⏳ Loading summarization model (Flan-T5 small, local)...")
-    summarizer = pipeline(
-        "summarization",
-        model=local_model_path,
-        tokenizer=local_model_path,
-        device=-1  # CPU
-    )
-    print("✅ Model loaded from local path.")
-
-    # Get emails and summarize
-    emails = get_recent_emails(limit=limit)
-    all_summaries = []
-
-    for idx, (subject, body) in enumerate(emails, start=1):
-        print(f"\n📧 Email #{idx}")
-        print(f"Subject: {subject}")
-        summary = summarize_email(body)
-        print(f"🔍 Summary: {summary}")
-        all_summaries.append(summary)
-
-    # Global digest
-    if all_summaries:
-        print(f"\n📌 General Takeaways from Last {limit} Emails:")
-        combined = ' '.join(all_summaries)
-        try:
-            general_summary = summarizer(
-                combined,
-                max_length=150,
-                min_length=50,
-                do_sample=False
-            )
-            print(f"📣 {general_summary[0]['summary_text']}")
+            self.model = SentenceTransformer(self.model_path)
+            print("Model loaded successfully!")
         except Exception as e:
-            print(f"[Error summarizing overall insights: {str(e)}]")
+            raise RuntimeError(
+                f"ERROR: Cannot load model from {self.model_path}\n"
+                f"Ensure the directory exists and contains the HF files.\n\n{e}"
+            )
 
+    def embed_text(self, text: str) -> np.ndarray:
+        """Generate embedding for a single text."""
+        try:
+            vec = self.model.encode(text, show_progress_bar=False)
+            return np.array(vec, dtype=np.float32)
+        except Exception as e:
+            print(f"Embedding error: {e}")
+            return np.zeros(768, dtype=np.float32)  # fallback
+
+    def embed_chunks(self, chunks: List[Chunk]) -> List[Chunk]:
+        """Generate embeddings for a list of chunks."""
+        print(f"Generating embeddings for {len(chunks)} chunks...")
+
+        for i, chunk in enumerate(chunks):
+            if i % 10 == 0 and i > 0:
+                print(f" progress: {i}/{len(chunks)}")
+
+            chunk.vector = self.embed_text(chunk.text)
+
+        print("Embeddings complete!")
+        return chunks
+
+
+print("Local embedder ready!")
