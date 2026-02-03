@@ -1,58 +1,192 @@
-from dataclasses import dataclass
-from typing import Dict, Optional, List
-import numpy as np
-from sentence_transformers import SentenceTransformer
+Perfect — here is a clean, no-nonsense step summary, exactly in the order it should be done. This is implementation-ready and easy to follow.
 
 
-@dataclass
-class Chunk:
-    """Text chunk with metadata and embedding."""
-    id: str
-    text: str
-    vector: Optional[np.ndarray]
-    metadata: Dict
+---
+
+SunSystems Compiled Forms – Step-by-Step Summary
+
+Objective: India support team must be technically incapable of seeing EU sensitive data
 
 
-class LocalEmbedder:
-    """
-    Offline embedding generator using local nomic-embed-text-v1.5 model.
-    Model path: models/nomic-embed-text-v1.5
-    """
+---
 
-    def __init__(self, model_path: str = "models/nomic-embed-text-v1.5"):
-        self.model_path = model_path
-        print(f"Loading local embedding model from: {self.model_path}")
+Step 1: Prepare Access Structure
 
-        try:
-            self.model = SentenceTransformer(self.model_path)
-            print("Model loaded successfully!")
-        except Exception as e:
-            raise RuntimeError(
-                f"ERROR: Cannot load model from {self.model_path}\n"
-                f"Ensure the directory exists and contains the HF files.\n\n{e}"
-            )
+Create two user groups:
 
-    def embed_text(self, text: str) -> np.ndarray:
-        """Generate embedding for a single text."""
-        try:
-            vec = self.model.encode(text, show_progress_bar=False)
-            return np.array(vec, dtype=np.float32)
-        except Exception as e:
-            print(f"Embedding error: {e}")
-            return np.zeros(768, dtype=np.float32)  # fallback
+EU_FINANCE
 
-    def embed_chunks(self, chunks: List[Chunk]) -> List[Chunk]:
-        """Generate embeddings for a list of chunks."""
-        print(f"Generating embeddings for {len(chunks)} chunks...")
-
-        for i, chunk in enumerate(chunks):
-            if i % 10 == 0 and i > 0:
-                print(f" progress: {i}/{len(chunks)}")
-
-            chunk.vector = self.embed_text(chunk.text)
-
-        print("Embeddings complete!")
-        return chunks
+IND_SUPPORT
 
 
-print("Local embedder ready!")
+Create two menu profiles (EU / India)
+
+Ensure India users have NO form designer access
+
+Raise a change ticket (audit evidence)
+
+
+
+---
+
+Step 2: Identify Sensitive (PII) Fields
+
+List all sensitive fields (bank, address, tax, contact, free text)
+
+Map each field to:
+
+Form name
+
+Table name
+
+
+Freeze this list → GDPR evidence
+
+
+
+---
+
+Step 3: Clone Standard Forms
+
+Open standard form (e.g. SSCUST)
+
+Save As → SSCUST_IND_NO_PII
+
+Never modify standard forms directly
+
+
+
+---
+
+Step 4: Remove Sensitive Fields
+
+In the India form:
+
+Delete sensitive fields completely (preferred)
+
+If delete not possible:
+
+Visible = FALSE
+
+Enabled = FALSE
+
+TabStop = FALSE
+
+
+Do not use profiles, roles, or personalization
+
+
+
+---
+
+Step 5: Compile the India Form
+
+Compile SSCUST_IND_NO_PII
+
+Verify:
+
+No personalization
+
+No runtime edits
+
+
+Result: fields cannot be re-enabled
+
+
+
+---
+
+Step 6: Separate Menu Assignment
+
+EU menu → points to standard form
+
+India menu → points to compiled form
+
+Same function, different technical objects
+
+
+
+---
+
+Step 7: Lock Inquiries & Drilldowns
+
+Repeat Steps 3–6 for:
+
+Customer / Supplier inquiries
+
+Transfer Desk
+
+Drill-downs
+
+Lookups
+
+
+(No PII should appear anywhere)
+
+
+---
+
+Step 8: Test Worst-Case Scenarios
+
+Test as:
+
+India user
+
+Admin user
+
+Power user
+
+User with DB access
+
+
+Confirm:
+
+No PII visible
+
+No PII exportable
+
+No personalization possible
+
+
+
+---
+
+Step 9: Protect During Upgrades
+
+Maintain a Form Register
+
+After upgrades:
+
+Re-import
+
+Re-compile
+
+Re-test
+
+
+
+
+---
+
+Final Outcome (Key Message)
+
+> India support users are technically prevented from accessing EU personal data.
+Access is impossible by system design, not by policy.
+
+
+
+
+---
+
+If you want, I can compress this into:
+
+1-page SOP
+
+Audit-ready checklist
+
+Change approval note
+
+Architecture diagram
+
+
+Just tell me 👍
