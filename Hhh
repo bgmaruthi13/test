@@ -1,3 +1,17 @@
+u
+
+What This Means Practically
+Scenario
+Risk Level
+Bangalore team reads EU customer data remotely
+⚠️ Needs legal cover
+Bangalore team writes/modifies EU personal data
+⚠️ Needs legal cover
+Bangalore team accesses only anonymized/aggregated data
+✅ Lower risk
+Bangalore team accesses only internal operational/system data with no PII
+✅ Generally fine
+
 Perfect — here is a clean, no-nonsense step summary, exactly in the order it should be done. This is implementation-ready and easy to follow.
 
 
